@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Huge raw source file (~244 MB) — never commit, not needed at runtime
+Data/HR_Data_MNC*.csv
+
+# Intermediate build artifact — the app only needs scored.csv + metrics.json
+outputs/people_analytics.csv
+
+# Local helper / scratch files
+_*.py
+_*.html
+pernod-ricard.png
+
+# Internal tooling artifacts
+.impeccable/
+
+# OS
+.DS_Store
+Thumbs.db

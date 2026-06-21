@@ -1,0 +1,16 @@
+# Pernod Ricard corporate dark theme (hex mirrors of DESIGN.md tokens) so native
+# widgets are on-brand before the injected CSS loads. French navy surface, summer
+# blue as the interactive accent.
+[theme]
+base = "dark"
+primaryColor = "#76A6D6"
+backgroundColor = "#0C1A2D"
+secondaryBackgroundColor = "#122339"
+textColor = "#EEF3F8"
+font = "sans serif"
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false
