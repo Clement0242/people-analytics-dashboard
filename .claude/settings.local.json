@@ -44,7 +44,8 @@
       "PowerShell(winget install *)",
       "PowerShell($p = @\\(\"$env:LOCALAPPDATA\\\\Programs\\\\GitHub CLI\\\\gh.exe\", \"$env:LOCALAPPDATA\\\\Microsoft\\\\WinGet\\\\Links\\\\gh.exe\"\\) | Where-Object { Test-Path $_ }; if \\($p\\) { $p; & $p[0] --version } else { \"searching...\"; Get-ChildItem \"$env:LOCALAPPDATA\" -Recurse -Filter gh.exe -ErrorAction SilentlyContinue | Select-Object -First 3 -ExpandProperty FullName })",
       "PowerShell(& \"C:\\\\Users\\\\cverdier\\\\AppData\\\\Local\\\\Microsoft\\\\WinGet\\\\Packages\\\\GitHub.cli_Microsoft.Winget.Source_8wekyb3d8bbwe\\\\bin\\\\gh.exe\" --version)",
-      "PowerShell($gh = \\(Get-ChildItem \"$env:LOCALAPPDATA\\\\Microsoft\\\\WinGet\" -Recurse -Filter gh.exe | Select-Object -First 1\\).FullName; & $gh repo create pernod-ricard-people-analytics --private --source=. --remote=origin --push 2>&1)"
+      "PowerShell($gh = \\(Get-ChildItem \"$env:LOCALAPPDATA\\\\Microsoft\\\\WinGet\" -Recurse -Filter gh.exe | Select-Object -First 1\\).FullName; & $gh repo create pernod-ricard-people-analytics --private --source=. --remote=origin --push 2>&1)",
+      "PowerShell(Get-Process *)"
     ]
   }
 }

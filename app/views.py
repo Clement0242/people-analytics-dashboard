@@ -569,34 +569,6 @@ def tenure_page() -> None:
         f"were Accelerate / Stretch talent. Catch them <b>before</b> year 4 — onboarding, growth "
         f"conversations and pay reviews land best in years 2–3.")
 
-    # Interactive cohort roster -------------------------------------------------
-    pool = active[active["priority_score"].notna()].copy()
-    pool["band"] = _tenure_band(pool["tenure_years"])
-    roster = pool if focus == "All employees" else pool[pool["band"] == focus]
-    roster = roster.sort_values("priority_score", ascending=False)
-    label = "all active employees" if focus == "All employees" else f"the {focus} cohort"
-    T.panel_header(f"Who to watch in {label}",
-                   f"{len(roster):,} active employees, ranked by retention priority. "
-                   "Switch cohorts in the sidebar.")
-    if roster.empty:
-        empty_state("No active employees in this cohort. Pick another tenure band in the sidebar.")
-        return
-    tbl = roster.assign(**{"P(leave)": (roster["p_attrition"] * 100).round(0)})[
-        ["name", "department", "talent_call", "tenure_years",
-         "priority_score", "P(leave)", "compa_ratio"]].head(25)
-    st.dataframe(
-        tbl, hide_index=True, width="stretch", height=360,
-        column_config={
-            "name": st.column_config.TextColumn("Employee", width="medium"),
-            "department": st.column_config.TextColumn("Function"),
-            "talent_call": st.column_config.TextColumn("Talent call"),
-            "tenure_years": st.column_config.NumberColumn("Tenure", format="%d yrs"),
-            "priority_score": st.column_config.ProgressColumn(
-                "Priority", min_value=0, max_value=100, format="%d"),
-            "P(leave)": st.column_config.NumberColumn("P(leave)", format="%d%%"),
-            "compa_ratio": st.column_config.NumberColumn("Compa", format="%.2f"),
-        })
-
 
 # ===========================================================================
 # Page 5 — Succession & Replacement
