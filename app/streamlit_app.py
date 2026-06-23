@@ -22,7 +22,7 @@ with st.sidebar:
 nav = st.navigation([
     st.Page(views.overview, title="Executive Overview", default=True,
             icon=":material/dashboard:"),
-    st.Page(views.model_page, title="Turnover Model", icon=":material/insights:"),
+    st.Page(views.model_page, title="Why People Leave", icon=":material/insights:"),
     st.Page(views.tenure_page, title="Tenure & Lifecycle", icon=":material/timeline:"),
     st.Page(views.priority_page, title="Retention Priority", icon=":material/flag:"),
     st.Page(views.pay_page, title="Pay Equity", icon=":material/payments:"),

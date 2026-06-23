@@ -179,69 +179,48 @@ def overview() -> None:
 # Page 2 — Turnover Model
 # ===========================================================================
 def model_page() -> None:
-    cm = M["confusion"]
-    recall = cm["tp"] / max(cm["tp"] + cm["fn"], 1)
-    precision = cm["tp"] / max(cm["tp"] + cm["fp"], 1)
-
-    # Targeting view: rank everyone by predicted risk, split into deciles.
-    risk = pd.qcut(df["p_attrition"], 10, labels=False, duplicates="drop")
-    by_dec = df.groupby(risk)["attrition"].mean()
-    top_decile_rate = by_dec.iloc[-1]
-    # Share of all leavers sitting in the riskiest 20%.
-    cutoff = df["p_attrition"].quantile(0.80)
-    capture = df.loc[df["p_attrition"] >= cutoff, "attrition"].sum() / df["attrition"].sum()
+    leavers = df[df["attrition"] == 1]
+    key_mask = df["talent_call"].isin(REGRETTED)
+    key_attr = df.loc[key_mask, "attrition"].mean()
+    regret_share = df["regretted"].sum() / max(len(leavers), 1)
+    # Engagement is the #1 driver — quantify the gap between least and most engaged.
+    lo_cut, hi_cut = df["engagement_index"].quantile([0.33, 0.67])
+    lo_eng = df.loc[df["engagement_index"] <= lo_cut, "attrition"].mean()
+    hi_eng = df.loc[df["engagement_index"] >= hi_cut, "attrition"].mean()
+    ratio = lo_eng / hi_eng if hi_eng else 0
+    top_driver = LABELS.get(next(iter(M["global_importance"])), "Engagement")
 
     T.title(
-        "What drives people to leave",
-        f"A model ranks every employee by how likely they are to leave. It works: the "
-        f"<b>riskiest 20%</b> contain <b>{capture:.0%}</b> of everyone who actually left, so "
-        f"effort goes where it counts. Below — what drives the risk, and the check that earns "
-        f"trust: <b>are the good people really the ones leaving?</b>",
+        "Why people leave — and whether it's the right people",
+        f"Most departures are driven by <b>{top_driver.lower()}</b>, tenure and workload. But "
+        f"volume isn't the point — <b>who</b> is: our Accelerate / Stretch talent leave at "
+        f"<b>{key_attr:.0%}</b>, and <b>{regret_share:.0%}</b> of all leavers are key people. "
+        f"That <span class='teal'>regretted attrition</span> is exactly what the priority list is "
+        f"built to stop.",
     )
 
     T.kpi_row([
-        {"label": "Leavers caught", "value": f"{recall:.0%}",
-         "delta": "of all who left", "direction": "flat", "signature": True},
-        {"label": "Flag precision", "value": f"{precision:.0%}",
-         "delta": "of flagged actually leave", "direction": "flat"},
-        {"label": "Top-risk decile", "value": f"{top_decile_rate:.0%}",
-         "delta": "leave rate", "direction": "down"},
-        {"label": "Company average", "value": f"{M['base_rate']:.0%}",
-         "delta": "leave rate", "direction": "flat"},
-        {"label": "Model accuracy (AUC)", "value": f"{M['roc_auc']:.2f}",
-         "delta": "1.0 = perfect", "direction": "flat"},
+        {"label": "Annual attrition", "value": f"{df['attrition'].mean():.0%}", "signature": True},
+        {"label": "Key-talent attrition", "value": f"{key_attr:.0%}",
+         "delta": "Accelerate / Stretch", "direction": "down"},
+        {"label": "Regretted (of leavers)", "value": f"{regret_share:.0%}",
+         "delta": f"{int(df['regretted'].sum())} key people lost", "direction": "down"},
+        {"label": "Disengaged attrition", "value": f"{lo_eng:.0%}",
+         "delta": f"{ratio:.0f}× the most-engaged", "direction": "down"},
     ])
 
-    c1, c2 = st.columns(2)
-    with c1:
-        T.panel_header("Does the risk score hold up?",
-                       "Actual attrition rate by predicted-risk band (lowest → highest tenth). "
-                       "The riskiest tenth leaves far more often than the safest — the ranking is real.")
-        fig = go.Figure(go.Bar(
-            x=[f"{i*10}–{i*10+10}%" for i in range(len(by_dec))], y=by_dec.values,
-            marker=dict(color=by_dec.values,
-                        colorscale=[[0, T.SAFE], [0.5, T.RISK_MID], [1, T.RISK_HIGH]]),
-            text=[f"{v:.0%}" for v in by_dec.values], textposition="outside",
-            textfont=dict(color=T.INK_MUTED, size=11)))
-        fig.add_hline(y=M["base_rate"], line=dict(color=T.GOLD, dash="dot", width=1.5),
-                      annotation_text="company avg", annotation_position="top left",
-                      annotation_font=dict(color=T.GOLD, size=11))
-        fig.update_xaxes(title="Predicted-risk band (lowest → highest)")
-        fig.update_yaxes(tickformat=".0%", range=[0, by_dec.max() * 1.18], title="Actual attrition")
-        chart(fig, height=330)
-    with c2:
-        T.panel_header("What drives the risk",
-                       "How much each factor moves the prediction — the levers leaders can act on.")
-        imp = M["global_importance"]
-        items = [(LABELS.get(k, k), v) for k, v in imp.items() if v > 0][:8][::-1]
-        total = sum(v for _, v in items) or 1
-        fig = go.Figure(go.Bar(x=[v / total for _, v in items], y=[k for k, _ in items],
-                               orientation="h", marker_color=T.GOLD,
-                               text=[f"{v/total:.0%}" for _, v in items],
-                               textposition="outside", textfont=dict(color=T.INK_MUTED, size=11)))
-        fig.update_xaxes(title="Relative importance", tickformat=".0%",
-                         range=[0, max(v / total for _, v in items) * 1.18])
-        chart(fig, height=330)
+    T.panel_header("What drives departures",
+                   "How much each factor weighs in who leaves — the levers leaders can act on.")
+    imp = M["global_importance"]
+    items = [(LABELS.get(k, k), v) for k, v in imp.items() if v > 0][:8][::-1]
+    total = sum(v for _, v in items) or 1
+    fig = go.Figure(go.Bar(x=[v / total for _, v in items], y=[k for k, _ in items],
+                           orientation="h", marker_color=T.GOLD,
+                           text=[f"{v/total:.0%}" for _, v in items],
+                           textposition="outside", textfont=dict(color=T.INK_MUTED, size=11)))
+    fig.update_xaxes(title="Relative importance", tickformat=".0%",
+                     range=[0, max(v / total for _, v in items) * 1.18])
+    chart(fig, height=340)
 
     T.panel_header("Are we losing the right — or the wrong — people?",
                    "If attrition concentrated in low performers it would be healthy churn. It does "
