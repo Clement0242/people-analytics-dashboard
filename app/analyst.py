@@ -28,7 +28,7 @@ import theme as T
 
 RELAY = "https://clement-assistant.clement-verdier.workers.dev"
 SITE = "https://clement0242.github.io"
-FREE_MODELS = ["nvidia/nemotron-3-super-120b-a12b:free", "qwen/qwen3.8-27b:free", "openrouter/free"]
+FREE_MODELS = ["nvidia/nemotron-3-ultra-550b-a55b:free", "nvidia/nemotron-3.5-super-vl:free", "google/gemma-4-31b-it:free"]
 DIMS = ["Leadership & Manager", "Career & Growth", "Reward & Recognition",
         "Workload & Wellbeing", "Belonging & Conviviality", "Enablement & Tools"]
 KEY = {"Accelerate", "Stretch"}
