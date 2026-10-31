@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>People Analytics · Retention Priority</title>
+<meta name="description" content="People analytics case study: attrition model, talent (9-box), pay equity and a Retention Priority Score. Runs entirely in the browser.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@stlite/browser@1.9.2/build/stlite.css">
+<style>
+  /* Shown while Python loads in the browser (first visit: ~20-40 s, then cached). */
+  html, body { margin: 0; background: #0C1A2D; }
+  #chargement { position: fixed; inset: 0; display: grid; place-items: center; color: #EEF3F8;
+    font: 15px/1.5 "Hanken Grotesk", system-ui, sans-serif; text-align: center; padding: 24px; }
+  #chargement b { display: block; font-size: 22px; margin-bottom: 6px; }
+  #chargement span { color: #9DB0C6; }
+  #root:not(:empty) ~ #chargement { display: none; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="chargement"><div><b>People Analytics · Retention Priority</b>
+  Starting Python in your browser…<br><span>About 30 seconds on the first visit, nothing is sent to a server.</span></div></div>
+<script type="module">
+import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@1.9.2/build/stlite.js";
+const files = ["app/streamlit_app.py", "app/views.py", "app/theme.py", "app/succession.py",
+               "outputs/scored.csv", "outputs/metrics.json", ".streamlit/config.toml"];
+mount({
+  requirements: ["pandas", "plotly", "scikit-learn"],
+  entrypoint: "app/streamlit_app.py",
+  files: Object.fromEntries(files.map(f => [f, { url: f }])),
+}, document.getElementById("root"));
+</script>
+</body>
+</html>

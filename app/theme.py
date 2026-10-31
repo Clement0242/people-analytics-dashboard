@@ -1,4 +1,4 @@
-"""Design system for the dashboard — Pernod Ricard corporate theme.
+"""Design system for the dashboard — premium corporate dark theme.
 
 Premium executive dark theme anchored on the real Pernod Ricard identity:
 French navy + summer blue (trust, competence, the merger of two houses) with a
@@ -56,22 +56,16 @@ SAFE = "#4FB8AE"           # healthy / retained / fairly paid (teal)
 SERIES = [GOLD, BLUE, SAFE, COPPER, INK_MUTED]
 TALENT_COLOR = {"Accelerate": GOLD_STRONG, "Stretch": SAFE, "Grow in role": INK_MUTED}
 
-# Stylised "conviviality sun" mark — evokes the Pernod Ricard emblem in brand
-# colours (gold core, blue rays). Decorative SVG, not the trademark logo.
+# Neutral mark: the 9-box grid, the talent map the dashboard is built around.
 def _sun_svg() -> str:
-    rays = "".join(
-        '<line x1="24" y1="24" x2="{:.2f}" y2="{:.2f}" />'.format(
-            24 + 17 * math.cos(i * math.pi / 6), 24 + 17 * math.sin(i * math.pi / 6))
-        for i in range(12)
-    )
-    return (
-        '<svg width="26" height="26" viewBox="0 0 48 48" fill="none" '
-        'xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
-        f'<g stroke="{BLUE}" stroke-width="2.4" stroke-linecap="round">{rays}</g>'
-        f'<circle cx="24" cy="24" r="8.5" fill="{GOLD}" />'
-        f'<circle cx="24" cy="24" r="8.5" stroke="{GOLD_STRONG}" stroke-width="1.2" fill="none"/>'
-        "</svg>"
-    )
+    cells = []
+    for r in range(3):
+        for c in range(3):
+            fill = GOLD if (r, c) == (0, 2) else (BLUE if r + (2 - c) <= 1 else SURFACE2)
+            cells.append(f'<rect x="{4 + c * 14}" y="{4 + r * 14}" width="12" height="12" '
+                         f'rx="2.5" fill="{fill}" />')
+    return ('<svg width="44" height="44" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" '
+            f'aria-hidden="true">{"".join(cells)}</svg>')
 
 
 _SUN = _sun_svg()
@@ -133,7 +127,7 @@ html, body, .stApp, [class*="css"] {{ font-family:var(--sans); }}
 .nav-label {{ font-size:.66rem; font-weight:700; letter-spacing:.13em; text-transform:uppercase;
   color:var(--ink-faint); padding:2px 6px 6px; }}
 
-/* Brand — official logo on a clean plate */
+/* Brand mark */
 .brand {{ padding:2px 0 16px; border-bottom:1px solid var(--border); margin-bottom:12px; }}
 .brand .plate {{ background:#fff; border-radius:11px; padding:15px 17px;
   box-shadow:0 4px 16px -4px rgb(0 0 0 / .45); }}
@@ -300,14 +294,11 @@ def inject_css() -> None:
 
 
 def brand() -> None:
-    try:
-        logo = f'<div class="plate"><img src="{_data_uri("logo.png")}" '\
-               'alt="Pernod Ricard"></div>'
-    except FileNotFoundError:                       # graceful fallback to the sun mark
-        logo = f'<div style="text-align:center">{_SUN}</div>'
+    # No company logo: this is an independent case study, published publicly.
+    logo = f'<div style="text-align:center">{_SUN}</div>'
     st.markdown(
         f'<div class="brand">{logo}'
-        '<div class="sub">People Analytics · USA</div></div>'
+        '<div class="sub">People Analytics · case study</div></div>'
         '<div class="nav-label">Navigate</div>',
         unsafe_allow_html=True,
     )
@@ -378,6 +369,12 @@ def legend() -> None:
         '<div class="term"><b>Priority score</b> — P(leave) × talent value × pay risk.</div>')
     with st.expander("Legend & glossary"):
         st.markdown(f'<div class="legend">{rows}{terms}</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="legend" style="margin-top:12px;opacity:.85">Independent case study by '
+        '<a href="https://clement0242.github.io" target="_blank">Clément Verdier</a> on a public '
+        'HR dataset (14,999 employees) with seeded synthetic talent, pay and survey layers. '
+        'Names are generated. Not affiliated with or endorsed by any employer.</div>',
+        unsafe_allow_html=True)
 
 
 # --- Plotly -----------------------------------------------------------------

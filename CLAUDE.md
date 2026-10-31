@@ -4,8 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this project is
 
-A **People Analytics** portfolio project built to support an application/interview for the
-*VIE Analyst, People Analytics* role at Pernod Ricard USA (New York). The interview is in
+A **People Analytics** portfolio project, built while preparing an application/interview for a
+*VIE Analyst, People Analytics* role (New York). Published publicly as an **independent case
+study**: no company logo, branding or real data in the app. The interview is in
 **English**, so all deliverables — code, dataset column names, the app, and the README —
 must be written in **English**. (Conversation with the maintainer happens in French.)
 
@@ -69,17 +70,15 @@ seeded) onto the 15k backbone — **`satisfaction_level` stays the ground-truth 
 - **Numeric salary + market benchmark** (from the salary band & role) → **compa-ratio**.
 - **Name / Employee ID** so the priority list is tangible.
 
-## Intended architecture
-
-No code exists yet; build in this order (each step is the foundation for the next):
+## Architecture
 
 ```
 src/build_dataset.py   # HR.csv -> augmented dataset (run first)  -> outputs/
 src/features.py        # 9-box, talent call, compa-ratio derivations
-src/model.py           # training + SHAP drivers + Retention Priority scoring
-app/streamlit_app.py   # 4 pages (see below)
-notebooks/01_exploration.ipynb  # EDA — shows the analytical approach for the interview
-outputs/               # augmented dataset, trained model, figures (gitignore large files)
+src/model.py           # grouped evaluation, out-of-fold scoring, model-based drivers, priority
+app/streamlit_app.py   # 6 pages (views.py), theme.py, succession.py
+index.html             # browser version (stlite) for GitHub Pages
+outputs/               # scored.csv + metrics.json (committed: the app needs them)
 ```
 
 Streamlit app pages: **(1) Executive Overview** (turnover, regretted vs non-regretted,
@@ -105,11 +104,12 @@ python src/model.py                # trains model + writes scored output to outp
 streamlit run app/streamlit_app.py
 ```
 
-(`requirements.txt`, `src/`, and `app/` don't exist yet — create them as the project is built.)
+Public version: `index.html` runs the app in the browser with stlite (GitHub Pages, `main` / root).
+After changing the model, re-run the pipeline and commit `outputs/scored.csv` + `metrics.json`.
 
 ## Conventions
 
 - **English** for everything produced (identifiers, columns, UI strings, README) — interview is in English.
 - Augmentation and any sampling must be **seeded** so results are reproducible across runs.
-- This folder lives inside the larger `C:/Users/cverdier/Documents` git repo; it is **not** its
-  own repo. Scope commits accordingly.
+- Evaluation: split grouped by identical source record (HR.csv has 3,008 duplicates), threshold
+  from out-of-fold training predictions, scoring out-of-fold. Keep it that way.

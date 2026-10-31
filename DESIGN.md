@@ -74,9 +74,8 @@ to its content and importance, the signature figure largest. Avoid the hero-metr
 
 ## Components
 
-- **Sidebar brand:** the official Pernod Ricard logo on a white "plate" (rounded card + soft
-  shadow) — the navy wordmark needs a light ground, so a plate is correct rather than forcing
-  the logo onto the dark surface. Falls back to the SVG sun mark if the asset is missing.
+- **Sidebar brand:** a neutral mark, the 9-box grid itself (gold top-right cell = Accelerate).
+  No company logo: the app is a public, independent case study.
 - **Sidebar nav:** Material-symbol icon per page; muted by default, hover = `--surface-2`,
   active = blue-tinted fill + 3px inset blue accent + blue-strong label. A small "Navigate" label
   sets the section.

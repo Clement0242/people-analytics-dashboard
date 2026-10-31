@@ -1,9 +1,16 @@
 # People Analytics — Retention Priority Dashboard
 
 A decision-first People Analytics dashboard that turns workforce data into **retention
-action**. Built as a portfolio project for the *VIE Analyst, People Analytics* role at
-Pernod Ricard USA, around the way the team actually works: talent reviews, regretted
-attrition, the 9-box, compa-ratio, and engagement surveys.
+action**, around the way People teams actually work: talent reviews, regretted attrition,
+the 9-box, compa-ratio and engagement surveys.
+
+**[Open the live app](https://clement0242.github.io/people-analytics-dashboard/)** — it runs
+entirely in your browser (Python via WebAssembly, ~30 s to start the first time; no server,
+nothing sent anywhere).
+
+> Independent case study on a public HR dataset with seeded synthetic layers, built while
+> preparing an application for a People Analytics role. Names are generated. Not affiliated
+> with or endorsed by any employer.
 
 > **The spine — a single Retention Priority Score:**
 > `P(attrition)  ×  Talent value (9-box)  ×  Pay risk (low compa-ratio)`
@@ -38,11 +45,14 @@ engagement survey (6 dimensions), a 1–5 potential rating, the 9-box and talent
 and lifecycle dates. The dataset's original satisfaction level is kept as the ground-truth
 engagement driver, so the augmentation stays anchored to real signal.
 
-**Model.** A gradient-boosting classifier (`HistGradientBoostingClassifier`) predicts
-attrition (ROC-AUC ≈ 0.99 on a held-out test set — this dataset is highly separable). Global
-drivers come from permutation importance. Per-employee "why" is a **transparent local
-attribution** (no SHAP dependency): the factors where a person deviates most, in the
-risk-increasing direction, weighted by how much each factor drives attrition overall.
+**Model, evaluated strictly.** A gradient-boosting classifier (`HistGradientBoostingClassifier`)
+predicts attrition. The public file repeats **3,008 records** exactly; a random split hides the
+twin of ~29 % of test rows in the training set. So the split is **grouped by record**, the
+decision threshold is chosen on **out-of-fold training predictions**, and every employee is
+scored by a model that **never saw them**. Result: ROC-AUC **0.983** (0.992 with a naive split),
+PR-AUC 0.967 — this dataset is very separable; expect less on real HR data. Global drivers
+come from permutation importance. The per-employee "why" asks the model itself: how much
+would this person's risk fall if one factor were at the company median?
 
 **The honest check.** Predicting churn isn't enough — healthy churn (low performers leaving)
 needs no action. The Turnover Model page verifies that **Accelerate / Stretch talent leave at
@@ -78,28 +88,31 @@ streamlit run app/streamlit_app.py
 src/build_dataset.py   # augmented dataset (talent, survey, reward layers)
 src/features.py        # shared business derivations (9-box, talent call, compa, survey schema)
 src/model.py           # training, permutation importance, local drivers, priority score
-app/streamlit_app.py   # entry point (page config, theme, navigation, logo + legend)
+app/streamlit_app.py   # entry point (page config, theme, navigation, legend)
 app/views.py           # the six pages
 app/succession.py      # k-NN successor matching
 app/theme.py           # design system: tokens, CSS, Plotly template, HTML helpers
-app/assets/logo.png    # Pernod Ricard logo (sidebar)
+index.html             # the same app, run in the browser by stlite (GitHub Pages)
 PRODUCT.md / DESIGN.md # strategic + visual design context
 ```
 
 ## Honest limitations
 
 - The survey, potential, compa-ratio and lifecycle dates are **synthetic augmentation** on a
-  real attrition backbone — they illustrate the analytical method, not Pernod Ricard's actual
+  real attrition backbone — they illustrate the analytical method, not any company's actual
   numbers. All generation is seeded and reproducible.
-- The 0.99 AUC reflects how separable this particular dataset is; on real HR data, expect lower.
+- The 0.98 AUC reflects how separable this particular dataset is, even after removing the
+  duplicate leak; on real HR data, expect lower.
+- The file is a snapshot in which everyone has 2+ years of service: departures are spread over
+  the last 12 months, and hires are not observable.
 - "Headcount evolution" reads flows from a cross-section (departures are spread over 24 months);
   it is descriptive, not a fitted forecast.
 
 ## Design
 
-Premium corporate dark theme grounded in the real Pernod Ricard identity — **French navy** +
-**summer blue** (trust, competence), with a warm **gold** reserved for value (priority, money,
-the figures leaders read first), and the official logo in the sidebar. Serif (Fraunces) for
+Premium corporate dark theme — **French navy** + **summer blue** (trust, competence), with a
+warm **gold** reserved for value (priority, money, the figures leaders read first). The mark
+is the 9-box grid itself; no company logo. Serif (Fraunces) for
 editorial moments, humanist sans (Hanken Grotesk) for all data. Diverging risk scales are
 amber↔teal (colour-blind-safe). Interactive controls on every page (headcount window, tenure
 cohort, pay what-if). See `DESIGN.md`.
@@ -110,8 +123,12 @@ cohort, pay what-if). See `DESIGN.md`.
 - [`PRESENTATION_SCRIPT.md`](PRESENTATION_SCRIPT.md) — interview walkthrough, page by page.
 - [`DESIGN.md`](DESIGN.md) · [`PRODUCT.md`](PRODUCT.md) — design system and product brief.
 
-## Deploy (Streamlit Community Cloud)
+## Deploy
 
-The scored data (`outputs/scored.csv`, `outputs/metrics.json`) is committed, so the app runs with
-no build step. Push to GitHub, then create an app at
-[share.streamlit.io](https://share.streamlit.io) pointing at **`app/streamlit_app.py`** on `main`.
+**GitHub Pages (live version).** `index.html` mounts the Streamlit app with
+[stlite](https://github.com/whitphx/stlite) (`@stlite/browser` 1.9.2): Pyodide runs the same
+Python files in the browser, reading the committed `outputs/scored.csv` and `metrics.json`.
+Settings → Pages → *Deploy from a branch* → `main` / `(root)`.
+
+**Streamlit Community Cloud (server version).** Create an app at
+[share.streamlit.io](https://share.streamlit.io) pointing at `app/streamlit_app.py` on `main`.

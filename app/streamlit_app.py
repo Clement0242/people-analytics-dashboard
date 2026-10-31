@@ -1,4 +1,4 @@
-"""Pernod Ricard — People Analytics dashboard (entry point).
+"""People Analytics — Retention Priority dashboard (entry point).
 
 Decision-first executive view over the augmented workforce dataset. Spine: a
 Retention Priority Score (P(attrition) x talent value x pay risk) that ranks the
@@ -10,7 +10,7 @@ import streamlit as st
 
 import theme as T
 
-st.set_page_config(page_title="Pernod Ricard · People Analytics",
+st.set_page_config(page_title="People Analytics · Retention Priority",
                    page_icon="◆", layout="wide", initial_sidebar_state="expanded")
 T.inject_css()
 

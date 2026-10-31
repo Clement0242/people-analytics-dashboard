@@ -160,9 +160,10 @@ Keep it short. Then share your screen and start on the first page.
 ## Anticipated questions & how to answer
 
 **"How accurate is the model?"**
-> "On this dataset it scores very high. I'd be honest that public data is unusually clean — in
-> production I'd expect a lower number and I would watch closely for data leakage and validate it
-> over time. For me the model is a means to the decision, not the headline."
+> "ROC-AUC 0.98 on employees it never saw. The public file repeats 3,000 records, so I
+> grouped the split by record — a naive split would have shown 0.992. Public data is
+> unusually clean; in production I'd expect a lower number and validate over time. For me the
+> model is a means to the decision, not the headline."
 
 **"Is this real Pernod Ricard data?"**
 > "No — it's a public HR dataset. I added realistic talent, pay and survey layers on top, all

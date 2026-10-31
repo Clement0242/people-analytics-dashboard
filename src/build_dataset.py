@@ -71,7 +71,7 @@ def build() -> pd.DataFrame:
     df["department"] = df["department"].map(F.DEPARTMENT_LABELS)
 
     # --- Identity ---------------------------------------------------------
-    df.insert(0, "employee_id", [f"PRUSA-{i:05d}" for i in range(1, n + 1)])
+    df.insert(0, "employee_id", [f"EMP-{i:05d}" for i in range(1, n + 1)])
     df.insert(1, "name", [
         f"{rng.choice(FIRST_NAMES)} {rng.choice(LAST_NAMES)}" for _ in range(n)
     ])
@@ -147,15 +147,16 @@ def build() -> pd.DataFrame:
     df["comment_theme"] = themes
 
     # --- Lifecycle: hire / termination / regretted ------------------------
-    hire_offset = (df["tenure_years"].to_numpy() * 365
+    df["status"] = np.where(df[F.TARGET] == 1, "Departed", "Active")
+    departed = (df[F.TARGET] == 1).to_numpy()
+    # The public file is a snapshot with no dates, and "left" reads as an annual
+    # rate: departures are spread over the last 12 months. Tenure is measured at
+    # exit for leavers, so their hire date counts back from the termination date.
+    term_days = rng.integers(1, 366, n)
+    end_day = np.where(departed, term_days, 0)
+    hire_offset = (end_day + df["tenure_years"].to_numpy() * 365
                    + rng.integers(0, 365, n)).astype(int)
     df["hire_date"] = [TODAY - timedelta(days=int(d)) for d in hire_offset]
-    df["status"] = np.where(df[F.TARGET] == 1, "Departed", "Active")
-
-    departed = df[F.TARGET] == 1
-    # Spread departures over the last 24 months (the cross-section has no dates;
-    # a 2-year window gives a realistic flow rather than a 12-month cliff).
-    term_days = rng.integers(1, 731, n)
     term_date = [TODAY - timedelta(days=int(d)) for d in term_days]
     df["termination_date"] = np.where(departed, term_date, None)
     reason = np.where(rng.random(n) < 0.78, "Voluntary", "Involuntary")

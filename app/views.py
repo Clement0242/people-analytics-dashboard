@@ -25,7 +25,7 @@ UNDERPAID = 0.90
 
 # Human labels for the model's feature names (mirrors features.FEATURE_LABELS).
 LABELS = {
-    "engagement_index": "Low engagement", "performance_raw": "Performance",
+    "engagement_index": "Engagement", "performance_raw": "Performance",
     "projects": "Project load", "avg_monthly_hours": "Monthly hours",
     "tenure_years": "Tenure", "work_accident": "Work accident history",
     "promoted_last_5y": "No recent promotion", "potential": "Potential",
@@ -114,7 +114,7 @@ def overview() -> None:
     T.kpi_row([
         {"label": "Active headcount", "value": f"{len(active):,}", "signature": True},
         {"label": "Annual attrition", "value": f"{df['attrition'].mean():.0%}",
-         "delta": "vs 18% market", "direction": "down"},
+         "delta": f"{int(df['attrition'].sum()):,} leavers in 12 months", "direction": "down"},
         {"label": "Regretted (of leavers)", "value": f"{regret_share:.0%}",
          "delta": f"{int(df['regretted'].sum())} key people lost", "direction": "down"},
         {"label": "High-priority risks", "value": f"{len(hi)}",
@@ -125,13 +125,13 @@ def overview() -> None:
 
     c1, c2 = st.columns([1.45, 1])
     with c1:
-        T.panel_header("Headcount evolution",
-                       "Active headcount, hires and departures — pick the window.")
-        window = st.radio("Window", [12, 24, 36], index=1, horizontal=True,
+        T.panel_header("Headcount and departures",
+                       "Active headcount and monthly departures over the year. The source file is a "
+                       "snapshot in which everyone has 2+ years of service, so hires are not observable.")
+        window = st.radio("Window", [6, 12], index=1, horizontal=True,
                           format_func=lambda m: f"{m} months", label_visibility="collapsed")
         h = headcount_series(window)
         fig = go.Figure()
-        fig.add_bar(x=h["month"], y=h["hires"], name="Hires", marker_color=T.SAFE, opacity=.85)
         fig.add_bar(x=h["month"], y=-h["departures"], name="Departures",
                     marker_color=T.RISK_HIGH, opacity=.85)
         fig.add_scatter(x=h["month"], y=h["headcount"], name="Headcount", yaxis="y2",
@@ -221,6 +221,26 @@ def model_page() -> None:
     fig.update_xaxes(title="Relative importance", tickformat=".0%",
                      range=[0, max(v / total for _, v in items) * 1.18])
     chart(fig, height=340)
+
+    T.panel_header("How far can the model be trusted?",
+                   "Scored on employees it never saw. The public file repeats 3,008 records: a random "
+                   "split hides their twins in the test set, so the split is grouped by record.")
+    cm = M["confusion"]
+    prec = cm["tp"] / max(cm["tp"] + cm["fp"], 1)
+    rec = cm["tp"] / max(cm["tp"] + cm["fn"], 1)
+    T.kpi_row([
+        {"label": "ROC-AUC (grouped split)", "value": f"{M['roc_auc']:.3f}",
+         "delta": f"{M.get('naive_roc_auc', M['roc_auc']):.3f} with a naive split", "direction": "flat"},
+        {"label": "PR-AUC", "value": f"{M['pr_auc']:.3f}",
+         "delta": f"base rate {M['base_rate']:.0%}", "direction": "flat"},
+        {"label": "Precision at threshold", "value": f"{prec:.0%}",
+         "delta": f"threshold {M['threshold']:.2f}, set on training folds", "direction": "flat"},
+        {"label": "Recall at threshold", "value": f"{rec:.0%}",
+         "delta": f"{cm['fn']} leavers missed of {cm['tp'] + cm['fn']}", "direction": "flat"},
+    ])
+    T.insight("This public dataset is unusually separable — on real HR data expect a markedly lower "
+              "AUC. The value of the page is the method: honest evaluation, then the question of "
+              "<b>who</b> leaves.")
 
     T.panel_header("Are we losing the right — or the wrong — people?",
                    "If attrition concentrated in low performers it would be healthy churn. It does "

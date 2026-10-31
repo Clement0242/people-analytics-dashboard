@@ -1,6 +1,6 @@
 # Data & Model Documentation
 
-People Analytics dashboard — Pernod Ricard USA portfolio project.
+People Analytics dashboard — an independent case study on public data.
 This document explains **where the data comes from**, **every field it contains**, and **how
 each model and score is built**. It is the technical companion to the dashboard; for the
 interview walkthrough see `PRESENTATION_SCRIPT.md`.
@@ -53,7 +53,7 @@ noise.
 
 | Layer | How it is derived | Anchored to |
 |---|---|---|
-| **Identity** (name, employee ID) | Generated labels (`PRUSA-00001`, …) | — (makes the list tangible) |
+| **Identity** (name, employee ID) | Generated labels (`EMP-00001`, …) | — (makes the list tangible) |
 | **Performance rating (1–5)** | The 0–1 evaluation mapped to a realistic, top-heavy 1–5 scale | `performance_raw` |
 | **Potential (1–5)** | Higher for strong performers, recently promoted, engaged people; lower with long tenure | performance + promotion + engagement − tenure |
 | **9-box & talent call** | Performance band × potential band → talent group | performance × potential |
@@ -69,7 +69,7 @@ noise.
 ### Identity & organisation
 | Field | Meaning |
 |---|---|
-| `employee_id` | Unique ID (`PRUSA-#####`) |
+| `employee_id` | Unique ID (`EMP-#####`) |
 | `name` | Employee name |
 | `department` | Function (Sales, Finance, People & Experience, Technical, Customer Support, Management, IT, Product, Marketing, R&D) |
 | `salary_band` | low / medium / high |
@@ -134,17 +134,23 @@ noise.
 - **What it is:** a gradient-boosting classifier (scikit-learn `HistGradientBoostingClassifier`)
   trained to predict `attrition` from 12 features (engagement, performance, projects, hours,
   tenure, work accident, promotion, potential, compa-ratio, survey score, department, salary band).
-- **How it's trained:** 75% train / 25% test split, stratified on the target, fixed seed.
+- **How it's trained and evaluated:** the public file repeats **3,008 records** exactly. A
+  random split would put the twin of ~29 % of the test rows in the training set, so the 75 / 25
+  split is **grouped by identical record** (`GroupShuffleSplit`), and the operating threshold is
+  chosen on **out-of-fold predictions of the training set** (5-fold `GroupKFold`), never on the test.
 - **Quality on the held-out test set:**
 
   | Metric | Value | Reading |
   |---|---|---|
-  | ROC-AUC | **0.99** | Ranks leavers vs stayers almost perfectly |
-  | PR-AUC | **0.99** | Strong even though only ~24% leave |
-  | Recall | **94%** | Catches 94% of people who actually left |
-  | Precision | **99%** | When it flags someone, it is almost always right |
+  | ROC-AUC | **0.983** | 0.992 with a naive random split: the duplicates flatter it |
+  | PR-AUC | **0.967** | Strong even though only ~24 % leave |
+  | Recall | **91%** | At threshold 0.58, set on training folds |
+  | Precision | **99%** | When it flags someone, it is usually right |
   | Base rate | **24%** | Company attrition in the data |
 
+- **Scoring:** every employee is scored by a model that never saw them (5-fold, grouped).
+  Scoring the training rows in-sample would give active employees a risk of ~0 simply because
+  the model learnt that they stayed.
 - **Targeting power:** the riskiest 20% of employees by predicted score contain the large
   majority of everyone who actually left — so retention effort can be concentrated, not sprayed.
 
@@ -154,9 +160,11 @@ is shuffled). The dominant drivers are **low engagement**, then **tenure**, **mo
 and **project load** — the levers leaders can actually act on.
 
 ### 5.3 Local drivers — "why this person?"
-For each employee, a transparent attribution shows the **top 3 factors where they deviate most
-in the risk-increasing direction**, weighted by how much each factor drives attrition overall.
-No black box: every "why" can be traced back to the person's own numbers.
+The model itself is asked: for each factor, **how much would this person's predicted risk fall
+if that factor were at the company median**, the rest of the profile unchanged? The three
+largest drops are the drivers, labelled with their direction (e.g. *Long tenure*, *Low
+engagement*). A factor that changes the risk by less than 2 points is not shown; for most
+employees the answer is "No dominant factor", because the model sees no risk to explain.
 
 ### 5.4 Retention Priority Score — the spine of the product
 A single 0–100 score that fuses the three signals leaders already reason about:
@@ -170,7 +178,9 @@ Retention Priority  =  P(attrition)  ×  Talent value  ×  Pay risk
   (you fight hardest for the people you can least afford to lose).
 - **Pay risk:** a multiplier that rises as compa-ratio falls below 0.95 (underpaid = extra risk).
 
-The raw score is scaled to 0–100 and split into **High / Medium / Low** bands. It is computed
+The raw score is scaled to 0–100 (100 = the highest active score, no clipping) and split by
+rank, i.e. by capacity: **High** = top 0.5 % of active employees (57 people), **Medium** = the
+next 2.5 %. It is computed
 for **active employees only** — you cannot retain someone who has already left.
 
 ### 5.5 Suggested action
@@ -193,8 +203,8 @@ successor.
 This is a **portfolio project on public data**, and it says so:
 
 - **Augmented layers.** Talent, pay and survey data are realistic but synthetic, anchored to the
-  real signals. They demonstrate the *integration*, not real Pernod Ricard numbers.
-- **The 0.99 AUC is optimistic.** On this clean public dataset the signal is unusually strong,
+  real signals. They demonstrate the *integration*, not any real company's numbers.
+- **The 0.98 AUC is still optimistic.** On this clean public dataset the signal is unusually strong,
   and some augmented features are derived from the same drivers as the target. In production I
   would expect a lower score, watch carefully for **data leakage**, and validate over time
   rather than on a single split.
