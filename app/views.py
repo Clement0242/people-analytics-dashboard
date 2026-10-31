@@ -670,3 +670,11 @@ def succession_page() -> None:
                        "Successor score = profile match × readiness × retention.")
         for i, (_, cand) in enumerate(succ.iterrows(), start=1):
             _successor_card(i, cand)
+
+
+# ===========================================================================
+# Page 7 — AI Analyst
+# ===========================================================================
+def analyst_page() -> None:
+    import analyst
+    analyst.page(df, M)

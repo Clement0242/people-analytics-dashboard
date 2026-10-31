@@ -32,6 +32,7 @@ with every headline one click from its evidence.
 | **Retention Priority** | Who do we act on now, and what do we do for each person? |
 | **Pay Equity** | Are we paying our best people fairly? Who is underpaid *and* high-value (double risk)? |
 | **Succession** | If we lose someone, who steps in? Internal successors by profile similarity. |
+| **AI Analyst** | Ask anything in plain language: which department, which people, what to do, how reliable the model is. |
 
 ![Retention Priority list with employee profile](docs/priority.png)
 
@@ -70,6 +71,24 @@ development gaps.
 ![Pay Equity — the double-risk quadrant](docs/pay.png)
 
 ![Succession — ranked internal successors by profile similarity](docs/succession.png)
+
+## AI Analyst (chat)
+
+A chat page answers questions about the workforce in plain language, with suggested questions and an
+optional focus on one employee. It is grounded, not free-wheeling:
+
+- the app computes a **numeric summary** of the data (headline KPIs, model reliability, departments,
+  talent calls, tenure, salary bands, engagement, survey dimensions for leavers vs stayers, pay equity,
+  suggested actions, the 25 top retention priorities, and the focused employee's full profile) and shows
+  it under *What the assistant can see*;
+- that summary and the conversation go to a **relay** (Cloudflare Worker) that holds the OpenRouter key —
+  never in this repository — and only allows **free models**, with per-IP and daily limits;
+- the relay's instructions: answer only from the data, quote the numbers and where they come from, say when
+  the data cannot answer, separate correlation from causation, never take individual employment decisions,
+  and remind that the data is public + synthetic.
+
+In the browser version, Python runs in a web worker and calls the relay with a synchronous request. When run
+with `streamlit run`, setting `OPENROUTER_API_KEY` calls OpenRouter directly with the same free models.
 
 ## Run it
 

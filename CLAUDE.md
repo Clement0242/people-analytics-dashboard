@@ -76,7 +76,7 @@ seeded) onto the 15k backbone — **`satisfaction_level` stays the ground-truth 
 src/build_dataset.py   # HR.csv -> augmented dataset (run first)  -> outputs/
 src/features.py        # 9-box, talent call, compa-ratio derivations
 src/model.py           # grouped evaluation, out-of-fold scoring, model-based drivers, priority
-app/streamlit_app.py   # 6 pages (views.py), theme.py, succession.py
+app/streamlit_app.py   # 7 pages (views.py), theme.py, succession.py, analyst.py (AI chat via the site's relay, free OpenRouter models)
 docs/index.html        # browser version (stlite) served by GitHub Pages (main / docs)
 outputs/               # scored.csv + metrics.json (committed: the app needs them)
 ```

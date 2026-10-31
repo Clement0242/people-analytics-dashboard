@@ -27,6 +27,7 @@ nav = st.navigation([
     st.Page(views.priority_page, title="Retention Priority", icon=":material/flag:"),
     st.Page(views.pay_page, title="Pay Equity", icon=":material/payments:"),
     st.Page(views.succession_page, title="Succession", icon=":material/account_tree:"),
+    st.Page(views.analyst_page, title="AI Analyst", icon=":material/forum:"),
 ])
 nav.run()
 
