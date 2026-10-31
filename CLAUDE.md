@@ -77,7 +77,7 @@ src/build_dataset.py   # HR.csv -> augmented dataset (run first)  -> outputs/
 src/features.py        # 9-box, talent call, compa-ratio derivations
 src/model.py           # grouped evaluation, out-of-fold scoring, model-based drivers, priority
 app/streamlit_app.py   # 6 pages (views.py), theme.py, succession.py
-index.html             # browser version (stlite) for GitHub Pages
+docs/index.html        # browser version (stlite) served by GitHub Pages (main / docs)
 outputs/               # scored.csv + metrics.json (committed: the app needs them)
 ```
 
@@ -104,7 +104,7 @@ python src/model.py                # trains model + writes scored output to outp
 streamlit run app/streamlit_app.py
 ```
 
-Public version: `index.html` runs the app in the browser with stlite (GitHub Pages, `main` / root).
+Public version: `docs/index.html` runs the app in the browser with stlite (GitHub Pages, `main` / docs), loading files from raw.githubusercontent.com on `main`.
 After changing the model, re-run the pipeline and commit `outputs/scored.csv` + `metrics.json`.
 
 ## Conventions

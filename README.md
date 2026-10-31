@@ -125,10 +125,10 @@ cohort, pay what-if). See `DESIGN.md`.
 
 ## Deploy
 
-**GitHub Pages (live version).** `index.html` mounts the Streamlit app with
+**GitHub Pages (live version).** `docs/index.html` (served by GitHub Pages from `main` / `docs`) mounts the Streamlit app with
 [stlite](https://github.com/whitphx/stlite) (`@stlite/browser` 1.9.2): Pyodide runs the same
-Python files in the browser, reading the committed `outputs/scored.csv` and `metrics.json`.
-Settings → Pages → *Deploy from a branch* → `main` / `(root)`.
+Python files in the browser, reading the committed app files and `outputs/` from this repository. `index.html` at the root is the same page with local paths, for testing (`python -m http.server`).
+Settings → Pages → *Deploy from a branch* → `main` / `docs`.
 
 **Streamlit Community Cloud (server version).** Create an app at
 [share.streamlit.io](https://share.streamlit.io) pointing at `app/streamlit_app.py` on `main`.
